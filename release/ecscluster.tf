@@ -1,78 +1,10 @@
 ### Create Amazon ECS Cluster
 
-data "aws_caller_identity" "current" {}
-
-data "aws_iam_policy_document" "helloworldkms" {
-  statement {
-    # https://docs.aws.amazon.com/kms/latest/developerguide/key-policy-overview.html
-    sid    = "Enable IAM User Permissions"
-    effect = "Allow"
-
-    principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
-    }
-    actions = [
-      "kms*"
-    ]
-    resources = [
-      "*"
-    ]
-  }
-  statement {
-    # https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html
-    sid    = "Allow Cloudwatch access to KMS Key"
-    effect = "Allow"
-
-    principals {
-      type        = "Service"
-      identifiers = ["logs.${var.Region}.amazonaws.com"]
-    }
-    actions = [
-      "kms:Encrypt*",
-      "kms:Decrypt*",
-      "kms:ReEncrypt*",
-      "kms:GenerateDataKey*",
-      "kms:Describe*"
-    ]
-    resources = [
-      "*"
-    ]
-    condition {
-      test     = "ArnLike"
-      variable = "kms:EncryptionContext:aws:logs:arn"
-      values = [
-        "arn:aws:logs:${var.Region}:${data.aws_caller_identity.current.account_id}:*"
-      ]
-    }
-  }
-}
-
-# Create KMS key for solution
-resource "aws_kms_key" "helloworld" {
-  description             = "KMS key to secure various aspects of an example Microsoft .NET web application"
-  deletion_window_in_days = 7
-  enable_key_rotation     = true
-  policy                  = data.aws_iam_policy_document.helloworldkms.json
-
-  tags = {
-    Name         = format("%s%s%s%s", var.PrefixCode, "kms", var.EnvCode, "helloworld")
-    resourcetype = "security"
-    codeblock    = "ecscluster"
-  }
-}
-
-# Create KMS Alias. Only used in this context to provide a friendly display name
-resource "aws_kms_alias" "helloworld" {
-  name          = "alias/helloworld"
-  target_key_id = aws_kms_key.helloworld.key_id
-}
-
 # Create CloudWatch log group for ECS logs 
 resource "aws_cloudwatch_log_group" "ecscluster" {
   name              = format("%s%s%s%s", var.PrefixCode, "cwl", var.EnvCode, "ecscluster")
   retention_in_days = 90
-  kms_key_id        = aws_kms_key.helloworld.arn
+  kms_key_id        = aws_kms_key.catsanddogs.arn
 
   tags = {
     Name         = format("%s%s%s%s", var.PrefixCode, "cwl", var.EnvCode, "ecscluster")
@@ -82,68 +14,21 @@ resource "aws_cloudwatch_log_group" "ecscluster" {
 }
 
 # Create CloudWatch log group for Application logs
-resource "aws_cloudwatch_log_group" "helloworld" {
-  name              = format("%s%s%s%s", var.PrefixCode, "cwl", var.EnvCode, "helloworld")
+resource "aws_cloudwatch_log_group" "catsanddogs" {
+  name              = format("%s%s%s%s", var.PrefixCode, "cwl", var.EnvCode, "catsanddogs")
   retention_in_days = 30
-  kms_key_id        = aws_kms_key.helloworld.arn
+  kms_key_id        = aws_kms_key.catsanddogs.arn
 
   tags = {
-    Name         = format("%s%s%s%s", var.PrefixCode, "cwl", var.EnvCode, "helloworld")
+    Name         = format("%s%s%s%s", var.PrefixCode, "cwl", var.EnvCode, "catsanddogs")
     resourcetype = "monitor"
     codeblock    = "ecscluster"
   }
 }
 
-# Create Amazon ECR repository to store Docker image
-resource "aws_ecr_repository" "helloworld" {
-  name                 = var.ECRRepo
-  image_tag_mutability = "MUTABLE"
-  force_delete         = true
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  encryption_configuration {
-    encryption_type = "KMS"
-    kms_key         = aws_kms_key.helloworld.arn
-  }
-
-  tags = {
-    Name         = format("%s%s%s%s", var.PrefixCode, "ecs", var.EnvCode, "helloworld")
-    resourcetype = "compute"
-    codeblock    = "ecscluster"
-  }
-}
-
-# Create ECR lifecycle policy to delete untagged images after 1 day
-resource "aws_ecr_lifecycle_policy" "helloworld" {
-  repository = aws_ecr_repository.helloworld.name
-
-  policy = <<EOF
-{
-  "rules": [
-    {
-      "rulePriority": 1,
-      "description": "Delete untagged images after one day",
-      "selection": {
-        "tagStatus": "untagged",
-        "countType": "sinceImagePushed",
-        "countUnit": "days",
-        "countNumber": 1
-      },
-      "action": {
-        "type": "expire"
-      }
-    }
-  ]
-}
-EOF
-}
-
 # Create Amazon ECS cluster 
-resource "aws_ecs_cluster" "helloworld" {
-  name = format("%s%s%s%s", var.PrefixCode, "ecs", var.EnvCode, "helloworld")
+resource "aws_ecs_cluster" "catsanddogs" {
+  name = format("%s%s%s%s", var.PrefixCode, "ecs", var.EnvCode, "catsanddogs")
 
   setting {
     name  = "containerInsights"
@@ -152,7 +37,7 @@ resource "aws_ecs_cluster" "helloworld" {
 
   configuration {
     execute_command_configuration {
-      kms_key_id = aws_kms_key.helloworld.arn
+      kms_key_id = aws_kms_key.catsanddogs.arn
       logging    = "OVERRIDE"
 
       log_configuration {
@@ -163,7 +48,7 @@ resource "aws_ecs_cluster" "helloworld" {
   }
 
   tags = {
-    Name         = format("%s%s%s%s", var.PrefixCode, "ecs", var.EnvCode, "helloworld")
+    Name         = format("%s%s%s%s", var.PrefixCode, "ecs", var.EnvCode, "catsanddogs")
     resourcetype = "storage"
     codeblock    = "ecscluster"
   }
@@ -212,7 +97,11 @@ resource "aws_iam_role_policy" "ecstaskexec" {
           "ecr:BatchGetImage"
         ]
         Effect   = "Allow"
-        Resource = ["${aws_ecr_repository.helloworld.arn}"]
+        Resource = [
+          "${aws_ecr_repository.web.arn}",
+          "${aws_ecr_repository.cats.arn}",
+          "${aws_ecr_repository.dogs.arn}",
+        ]
       },
       {
         # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/instance_IAM_role.html#cwl_iam_policy

@@ -58,7 +58,7 @@ resource "aws_iam_role_policy" "vpclogging" {
 resource "aws_cloudwatch_log_group" "vpc_01" {
   name              = format("%s%s%s%s", var.PrefixCode, "cwl", var.EnvCode, "vpc01flow")
   retention_in_days = 90
-  kms_key_id        = aws_kms_key.helloworld.arn
+  kms_key_id        = aws_kms_key.catsanddogs.arn
 
   tags = {
     Name         = format("%s%s%s%s", var.PrefixCode, "cwl", var.EnvCode, "vpc01flow")
@@ -309,8 +309,8 @@ resource "aws_security_group" "app01" {
 
 # Create Application Load Balancer
 # WARNING: Consider implementing AWS WAFv2 in front of an Application Load Balancer for production environments
-resource "aws_lb" "helloworld" {
-  name                       = format("%s%s%s%s", var.PrefixCode, "alb", var.EnvCode, "helloworld")
+resource "aws_lb" "catsanddogs" {
+  name                       = format("%s%s%s%s", var.PrefixCode, "alb", var.EnvCode, "catsanddogs")
   internal                   = false
   load_balancer_type         = "application"
   security_groups            = [aws_security_group.web01.id]
@@ -324,37 +324,37 @@ resource "aws_lb" "helloworld" {
   }
 
   tags = {
-    Name  = format("%s%s%s%s", var.Region, "alb", var.EnvCode, "helloworld")
+    Name  = format("%s%s%s%s", var.Region, "alb", var.EnvCode, "catsanddogs")
     rtype = "network"
   }
 }
 
 # Output ALB DNS name for GitHub Actions job output
-output "helloworld_alb_dns_name" {
-  value = aws_lb.helloworld.dns_name
+output "catsanddogs_alb_dns_name" {
+  value = aws_lb.catsanddogs.dns_name
 }
 
 # Create ALB listener
 # WARNING: Consider changing port to 443 and protocol to HTTPS for production environments 
-resource "aws_lb_listener" "helloworld" {
-  load_balancer_arn = aws_lb.helloworld.arn
+resource "aws_lb_listener" "catsanddogs" {
+  load_balancer_arn = aws_lb.catsanddogs.arn
   port              = "80"
   protocol          = "HTTP"
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.helloworld.arn
+    target_group_arn = aws_lb_target_group.catsanddogs.arn
   }
 
   tags = {
-    Name  = format("%s%s%s%s", var.Region, "lbl", var.EnvCode, "helloworld")
+    Name  = format("%s%s%s%s", var.Region, "lbl", var.EnvCode, "catsanddogs")
     rtype = "network"
   }
 }
 
 # Define ALB Target Group
 # WARNING: Lifecyle and name_prefix added for testing. Issue discussed here https://github.com/hashicorp/terraform-provider-aws/issues/16889
-resource "aws_lb_target_group" "helloworld" {
+resource "aws_lb_target_group" "catsanddogs" {
   name_prefix                   = "hello-"
   port                          = 80
   protocol                      = "HTTP"
@@ -378,7 +378,7 @@ resource "aws_lb_target_group" "helloworld" {
   }
 
   tags = {
-    Name  = format("%s%s%s%s", var.Region, "lbt", var.EnvCode, "helloworld")
+    Name  = format("%s%s%s%s", var.Region, "lbt", var.EnvCode, "catsanddogs")
     rtype = "network"
   }
 }

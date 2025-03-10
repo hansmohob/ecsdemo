@@ -36,11 +36,8 @@ variable "PublicIP" {
   description = "The Public IP address from which the web application will be accessed e.g. x.x.x.x/32"
   type        = string
 }
-variable "ECRRepo" {
-  description = "Name of Amazon ECR repository"
-  type        = string
-}
 variable "ImageTag" {
-  description = "Amazon ECR sample application Image Tag"
+  description = "Amazon ECR sample application Image Tag overridden by CodeBuild"
   type        = string
+  default     = "latest"
 }
