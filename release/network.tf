@@ -329,11 +329,6 @@ resource "aws_lb" "catsanddogs" {
   }
 }
 
-# Output ALB DNS name for GitHub Actions job output
-output "catsanddogs_alb_dns_name" {
-  value = aws_lb.catsanddogs.dns_name
-}
-
 # Create ALB listener
 # WARNING: Consider changing port to 443 and protocol to HTTPS for production environments 
 resource "aws_lb_listener" "catsanddogs" {
@@ -343,7 +338,7 @@ resource "aws_lb_listener" "catsanddogs" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.catsanddogs.arn
+    target_group_arn = aws_lb_target_group.web.arn
   }
 
   tags = {
@@ -352,10 +347,40 @@ resource "aws_lb_listener" "catsanddogs" {
   }
 }
 
-# Define ALB Target Group
+resource "aws_lb_listener_rule" "cats" {
+  listener_arn = aws_lb_listener.catsanddogs.arn
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.cats.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/cats*"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "dogs" {
+  listener_arn = aws_lb_listener.catsanddogs.arn
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.dogs.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/dogs*"]
+    }
+  }
+}
+
+# Define ALB Target Groups
 # WARNING: Lifecyle and name_prefix added for testing. Issue discussed here https://github.com/hashicorp/terraform-provider-aws/issues/16889
-resource "aws_lb_target_group" "catsanddogs" {
-  name_prefix                   = "hello-"
+resource "aws_lb_target_group" "web" {
+  name_prefix                   = "web"
   port                          = 80
   protocol                      = "HTTP"
   target_type                   = "ip"
@@ -378,7 +403,65 @@ resource "aws_lb_target_group" "catsanddogs" {
   }
 
   tags = {
-    Name  = format("%s%s%s%s", var.Region, "lbt", var.EnvCode, "catsanddogs")
+    Name  = format("%s%s%s%s", var.Region, "lbt", var.EnvCode, "web")
+    rtype = "network"
+  }
+}
+
+resource "aws_lb_target_group" "cats" {
+  name_prefix                   = "cats"
+  port                          = 80
+  protocol                      = "HTTP"
+  target_type                   = "ip"
+  vpc_id                        = aws_vpc.vpc_01.id
+  load_balancing_algorithm_type = "round_robin"
+
+  health_check {
+    path    = "/cats"
+    matcher = "200"
+  }
+
+  stickiness {
+    enabled         = true
+    type            = "lb_cookie"
+    cookie_duration = 86400
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name  = format("%s%s%s%s", var.Region, "lbt", var.EnvCode, "cats")
+    rtype = "network"
+  }
+}
+
+resource "aws_lb_target_group" "dogs" {
+  name_prefix                   = "dogs"
+  port                          = 80
+  protocol                      = "HTTP"
+  target_type                   = "ip"
+  vpc_id                        = aws_vpc.vpc_01.id
+  load_balancing_algorithm_type = "round_robin"
+
+  health_check {
+    path    = "/dogs"
+    matcher = "200"
+  }
+
+  stickiness {
+    enabled         = true
+    type            = "lb_cookie"
+    cookie_duration = 86400
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name  = format("%s%s%s%s", var.Region, "lbt", var.EnvCode, "dogs")
     rtype = "network"
   }
 }

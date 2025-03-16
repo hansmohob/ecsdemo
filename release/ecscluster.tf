@@ -32,7 +32,7 @@ resource "aws_ecs_cluster" "catsanddogs" {
 
   setting {
     name  = "containerInsights"
-    value = "enabled"
+    value = "enhanced"
   }
 
   configuration {
