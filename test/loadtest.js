@@ -7,7 +7,7 @@ export const options = {
 };
 
 export default function () {
-  const BASE_URL = 'http://REPLACE'; //Replace with ALB address similar to http://stacknamealbdvcatsanddogs-1234567890.eu-west-2.elb.amazonaws.com
+  const BASE_URL = 'http://REPLACE_ME'; //Replace with ALB DNS name similar to http://stacknamealbdvcatsanddogs-1234567890.eu-west-2.elb.amazonaws.com
   
   http.get(`${BASE_URL}/`);     // web frontend
   http.get(`${BASE_URL}/cats`); // cats service
