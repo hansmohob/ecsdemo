@@ -96,7 +96,7 @@ resource "aws_iam_role_policy" "ecstaskexec" {
           "ecr:GetDownloadUrlForLayer",
           "ecr:BatchGetImage"
         ]
-        Effect   = "Allow"
+        Effect = "Allow"
         Resource = [
           "${aws_ecr_repository.web.arn}",
           "${aws_ecr_repository.cats.arn}",

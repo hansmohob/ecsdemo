@@ -260,7 +260,15 @@ resource "aws_security_group" "web01" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = [var.PublicIP]
+    cidr_blocks = [var.PublicIPAddress]
+  }
+
+  ingress {
+    description = "NAT Gateway Inbound for code-server load testing"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [var.NatGatewayAddress]
   }
 
   egress {
@@ -417,7 +425,7 @@ resource "aws_lb_target_group" "cats" {
   load_balancing_algorithm_type = "round_robin"
 
   health_check {
-    path    = "/cats"
+    path    = "/cats/"
     matcher = "200"
   }
 
@@ -446,7 +454,7 @@ resource "aws_lb_target_group" "dogs" {
   load_balancing_algorithm_type = "round_robin"
 
   health_check {
-    path    = "/dogs"
+    path    = "/dogs/"
     matcher = "200"
   }
 

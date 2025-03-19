@@ -32,12 +32,16 @@ variable "Az02" {
   description = "Deployment Availability Zone 2 e.g. eu-west-1b"
   type        = string
 }
-variable "PublicIP" {
-  description = "The Public IP address from which the web application will be accessed e.g. x.x.x.x/32"
+variable "PublicIPAddress" {
+  description = "Public IP address (with /32 CIDR) for direct access to sample web application."
   type        = string
 }
+variable "NatGatewayAddress" {
+  type        = string
+  description = "NAT Gateway public IPs (with /32) for code-server outbound traffic - required for load testing from code-server instance."
+}
 variable "ImageTag" {
-  description = "Amazon ECR sample application Image Tag overridden by CodeBuild"
+  description = "Amazon ECR sample application Image Tag"
   type        = string
   default     = "latest"
 }

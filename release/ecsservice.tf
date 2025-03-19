@@ -4,8 +4,8 @@
 resource "aws_ecs_task_definition" "web" {
   family                   = format("%s%s%s%s", var.PrefixCode, "ect", var.EnvCode, "web")
   requires_compatibilities = ["FARGATE"]
-  cpu                      = 1024
-  memory                   = 2048
+  cpu                      = 512
+  memory                   = 1024
   network_mode             = "awsvpc"
   execution_role_arn       = aws_iam_role.ecstaskexec.arn
 
@@ -29,7 +29,7 @@ resource "aws_ecs_task_definition" "web" {
         options = {
           awslogs-group         = "${aws_cloudwatch_log_group.catsanddogs.name}",
           awslogs-region        = "${var.Region}",
-          awslogs-stream-prefix = "awslogs-"
+          awslogs-stream-prefix = "awslogs-web-"
         }
       }
     }
@@ -40,8 +40,8 @@ resource "aws_ecs_task_definition" "web" {
 resource "aws_ecs_task_definition" "cats" {
   family                   = format("%s%s%s%s", var.PrefixCode, "ect", var.EnvCode, "cats")
   requires_compatibilities = ["FARGATE"]
-  cpu                      = 1024
-  memory                   = 2048
+  cpu                      = 512
+  memory                   = 1024
   network_mode             = "awsvpc"
   execution_role_arn       = aws_iam_role.ecstaskexec.arn
 
@@ -65,7 +65,7 @@ resource "aws_ecs_task_definition" "cats" {
         options = {
           awslogs-group         = "${aws_cloudwatch_log_group.catsanddogs.name}",
           awslogs-region        = "${var.Region}",
-          awslogs-stream-prefix = "awslogs-"
+          awslogs-stream-prefix = "awslogs-cats"
         }
       }
     }
@@ -76,8 +76,8 @@ resource "aws_ecs_task_definition" "cats" {
 resource "aws_ecs_task_definition" "dogs" {
   family                   = format("%s%s%s%s", var.PrefixCode, "ect", var.EnvCode, "dogs")
   requires_compatibilities = ["FARGATE"]
-  cpu                      = 1024
-  memory                   = 2048
+  cpu                      = 512
+  memory                   = 1024
   network_mode             = "awsvpc"
   execution_role_arn       = aws_iam_role.ecstaskexec.arn
 
@@ -101,7 +101,7 @@ resource "aws_ecs_task_definition" "dogs" {
         options = {
           awslogs-group         = "${aws_cloudwatch_log_group.catsanddogs.name}",
           awslogs-region        = "${var.Region}",
-          awslogs-stream-prefix = "awslogs-"
+          awslogs-stream-prefix = "awslogs-dogs-"
         }
       }
     }
@@ -143,17 +143,18 @@ resource "aws_appautoscaling_target" "web" {
   service_namespace  = "ecs"
 }
 
-resource "aws_appautoscaling_policy" "web_cpu" {
-  name               = "web-cpu"
+resource "aws_appautoscaling_policy" "web_requests" {
+  name               = "web-requests"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.web.resource_id
   scalable_dimension = aws_appautoscaling_target.web.scalable_dimension
   service_namespace  = aws_appautoscaling_target.web.service_namespace
 
   target_tracking_scaling_policy_configuration {
-    target_value = 70.0
+    target_value = 1000
     predefined_metric_specification {
-      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+      predefined_metric_type = "ALBRequestCountPerTarget"
+      resource_label         = "${aws_lb.catsanddogs.arn_suffix}/${aws_lb_target_group.web.arn_suffix}"
     }
   }
 }
@@ -193,17 +194,18 @@ resource "aws_appautoscaling_target" "cats" {
   service_namespace  = "ecs"
 }
 
-resource "aws_appautoscaling_policy" "cats_cpu" {
-  name               = "cats-cpu"
+resource "aws_appautoscaling_policy" "cats_requests" {
+  name               = "cats-requests"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.cats.resource_id
   scalable_dimension = aws_appautoscaling_target.cats.scalable_dimension
   service_namespace  = aws_appautoscaling_target.cats.service_namespace
 
   target_tracking_scaling_policy_configuration {
-    target_value = 70.0
+    target_value = 1000
     predefined_metric_specification {
-      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+      predefined_metric_type = "ALBRequestCountPerTarget"
+      resource_label         = "${aws_lb.catsanddogs.arn_suffix}/${aws_lb_target_group.cats.arn_suffix}"
     }
   }
 }
@@ -243,17 +245,18 @@ resource "aws_appautoscaling_target" "dogs" {
   service_namespace  = "ecs"
 }
 
-resource "aws_appautoscaling_policy" "dogs_cpu" {
-  name               = "dogs-cpu"
+resource "aws_appautoscaling_policy" "dogs_requests" {
+  name               = "dogs-requests"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.dogs.resource_id
   scalable_dimension = aws_appautoscaling_target.dogs.scalable_dimension
   service_namespace  = aws_appautoscaling_target.dogs.service_namespace
 
   target_tracking_scaling_policy_configuration {
-    target_value = 70.0
+    target_value = 1000
     predefined_metric_specification {
-      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+      predefined_metric_type = "ALBRequestCountPerTarget"
+      resource_label         = "${aws_lb.catsanddogs.arn_suffix}/${aws_lb_target_group.dogs.arn_suffix}"
     }
   }
 }
