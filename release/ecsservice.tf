@@ -12,7 +12,7 @@ resource "aws_ecs_task_definition" "web" {
   container_definitions = jsonencode([
     {
       name                   = "web"
-      image                  = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.Region}.amazonaws.com/catsanddogs-web:${var.ImageTag}"
+      image                  = "${aws_ecr_repository.web.repository_url}:${var.ImageTag}"
       cpu                    = 256
       memory                 = 512
       essential              = true
@@ -48,7 +48,7 @@ resource "aws_ecs_task_definition" "cats" {
   container_definitions = jsonencode([
     {
       name                   = "cats"
-      image                  = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.Region}.amazonaws.com/catsanddogs-cats:${var.ImageTag}"
+      image                  = "${aws_ecr_repository.cats.repository_url}:${var.ImageTag}"
       cpu                    = 256
       memory                 = 512
       essential              = true
@@ -84,7 +84,7 @@ resource "aws_ecs_task_definition" "dogs" {
   container_definitions = jsonencode([
     {
       name                   = "dogs"
-      image                  = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.Region}.amazonaws.com/catsanddogs-dogs:${var.ImageTag}"
+      image                  = "${aws_ecr_repository.dogs.repository_url}:${var.ImageTag}"
       cpu                    = 256
       memory                 = 512
       essential              = true

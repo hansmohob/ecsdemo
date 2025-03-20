@@ -63,14 +63,14 @@ resource "aws_kms_key" "catsanddogs" {
 
 # Create KMS Alias. Only used in this context to provide a friendly display name
 resource "aws_kms_alias" "catsanddogs" {
-  name          = "alias/catsanddogs"
+  name          = format("%s%s%s", "alias/", var.PrefixCode, "catsanddogs")
   target_key_id = aws_kms_key.catsanddogs.key_id
 }
 
 
 # Create Amazon ECR repository for web
 resource "aws_ecr_repository" "web" {
-  name                 = "catsanddogs-web"
+  name                 = format("%s%s", var.PrefixCode, "-catsanddogs-web")
   image_tag_mutability = "MUTABLE"
   force_delete         = true
 
@@ -117,7 +117,7 @@ EOF
 
 # Create Amazon ECR repository for cats
 resource "aws_ecr_repository" "cats" {
-  name                 = "catsanddogs-cats"
+  name                 = format("%s%s", var.PrefixCode, "-catsanddogs-cats")
   image_tag_mutability = "MUTABLE"
   force_delete         = true
 
@@ -164,7 +164,7 @@ EOF
 
 # Create Amazon ECR repository for dogs
 resource "aws_ecr_repository" "dogs" {
-  name                 = "catsanddogs-dogs"
+  name                 = format("%s%s", var.PrefixCode, "-catsanddogs-dogs")
   image_tag_mutability = "MUTABLE"
   force_delete         = true
 
